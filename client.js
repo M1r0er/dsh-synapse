@@ -73,6 +73,10 @@ window.__ModuleLoader__.load({
       let releaseSwitchSlot
       const slots = typeof ctx.get === 'function' ? ctx.get('slots') : undefined
       if (slots !== undefined && typeof require === 'function') {
+        // Once the switch has a seat in the Conversation header it must not also
+        // live on the page: a body-level fixed pill would float over every view
+        // where that header never mounts (plugins, settings, ...).
+        switchEl.remove()
         try {
           // The Client shell hands the factory a shared `require`; React may be
           // the CJS object itself or wrapped as `default`, so accept both and
@@ -89,7 +93,7 @@ window.__ModuleLoader__.load({
               switchEl.classList.add('dsh-synapse-switch--slot')
               return () => {
                 switchEl.classList.remove('dsh-synapse-switch--slot')
-                host.append(switchEl)
+                switchEl.remove()
               }
             }, [])
             return React.createElement('div', { className: 'dsh-synapse-slot-cell', ref })
@@ -100,7 +104,8 @@ window.__ModuleLoader__.load({
             order: -10,
           }, SwitchCell))
         } catch {
-          // Slot service present but unusable: keep the fixed placement.
+          // Slot service present but unusable: restore the fixed placement.
+          host.append(switchEl)
         }
       }
 
